@@ -37,9 +37,11 @@ import plotnine as gg
 
 # Presented here for clarity.
 LIST_OF_VALID_CONFIGS = ['al.config_simple',
-                         'al.config_bbq']
+                         'al.config_bbq',
+                         'al.config_rl_reinf',
+                         'al.config_rl_ac']
 
-CONFIG_PATH = 'al.config_bbq'
+CONFIG_PATH = 'al.config_rl_ac'
 N_JOBS = 100
 
 
@@ -79,4 +81,42 @@ p = (gg.ggplot(plt_df)
      + gg.geom_line())
 print(p)
 
+#############################################################################
+# Collating data with Pandas
+params_df = config_lib.get_params_df(config)
+df = pd.merge(pd.concat(results), params_df, on='unique_id')
+plt_df = (df.groupby(['agent', 't'])
+          .agg({'cum_reward': np.mean})
+          .reset_index())
+
+
+#############################################################################
+# Plotting and analysis (uses plotnine by default)
+gg.theme_set(gg.theme_bw(base_size=16, base_family='serif'))
+gg.theme_update(figure_size=(12, 8))
+
+p = (gg.ggplot(plt_df)
+     + gg.aes('t', 'cum_reward', colour='agent')
+     + gg.geom_line())
+print(p)
+
+
+#############################################################################
+# Collating data with Pandas
+params_df = config_lib.get_params_df(config)
+df = pd.merge(pd.concat(results), params_df, on='unique_id')
+plt_df = (df.groupby(['agent', 't'])
+          .agg({'num_query': np.mean})
+          .reset_index())
+
+
+#############################################################################
+# Plotting and analysis (uses plotnine by default)
+gg.theme_set(gg.theme_bw(base_size=16, base_family='serif'))
+gg.theme_update(figure_size=(12, 8))
+
+p = (gg.ggplot(plt_df)
+     + gg.aes('t', 'num_query', colour='agent')
+     + gg.geom_line())
+print(p)
 

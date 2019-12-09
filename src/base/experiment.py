@@ -57,6 +57,8 @@ class BaseExperiment(object):
     # Log whatever we need for the plots we will want to use.
     instant_regret = optimal_reward - expected_reward
     self.cum_regret += instant_regret
+    self.cum_reward += expected_reward
+    self.num_query += int(reward!=None)
 
     # Advance the environment (used in nonstationary experiment)
     self.environment.advance(action, reward)
@@ -67,7 +69,10 @@ class BaseExperiment(object):
                         'cum_regret': self.cum_regret,
                         'action': action,
                         'unique_id': self.unique_id,
-                        'theta': self.agent.logger}
+                        'instant_reward': expected_reward,
+                        'cum_reward': self.cum_reward,
+                        'num_query': self.num_query,
+                        'logger': self.agent.logger}
       self.results.append(self.data_dict)
 
 
@@ -76,6 +81,8 @@ class BaseExperiment(object):
     np.random.seed(self.seed)
     self.cum_regret = 0
     self.cum_optimal = 0
+    self.cum_reward = 0
+    self.num_query = 0
 
     for t in range(self.n_steps):
       self.run_step_maybe_log(t)

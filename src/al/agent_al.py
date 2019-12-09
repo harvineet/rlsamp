@@ -2,7 +2,7 @@
 Adapted from code by Ian Osband
 https://github.com/iosband/ts_tutorial/
 
-Finite bandit agents."""
+Selective sampling agents."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -18,7 +18,9 @@ _SMALL_NUMBER = 1e-10
 ##############################################################################
 
 class SelectiveSampleBBQ(Agent):
-  """Agent to pick actions using BBQ selective sampling method."""
+  """Agent to pick actions using BBQ (Bound on Bias Query)
+  selective sampling method.
+  http://cesa-bianchi.di.unimi.it/Pubblicazioni/icml2009.pdf"""
   
   def __init__(self, n_feat, kappa):
     self.kappa = kappa
@@ -28,13 +30,15 @@ class SelectiveSampleBBQ(Agent):
     self.logger = None
   
   def update_observation(self, observation, action, reward):
-    self.step+=1
+    self.step += 1
 
     x_t = observation
     y_t = reward
     if y_t is not None:
       A_tp1 = self.A_t + np.outer(x_t, x_t) # computed twice
-      self.w_t = np.dot(pinv(A_tp1), np.dot(self.A_t, self.w_t) + y_t * x_t)
+      w_tp1 = np.dot(pinv(A_tp1), np.dot(self.A_t, self.w_t) + y_t * x_t)
+      self.A_t = A_tp1
+      self.w_t = w_tp1
     else:
       pass # same A_t, w_t
 
@@ -55,6 +59,10 @@ class SelectiveSampleBBQ(Agent):
   def __str__(self):
     return "theta:{}, step:{}".format(self.w_t, self.step)
 
+
+##############################################################################
+
+
 class UniformRandom(Agent):
   """Simple agent to pick actions at random uniformly."""
   
@@ -71,6 +79,10 @@ class UniformRandom(Agent):
     action = np.random.randint(self.n_arm)
 
     return action
+
+
+##############################################################################
+
 
 class FiniteBernoulliBanditEpsilonGreedy(Agent):
   """Simple agent made for finite armed bandit problems."""

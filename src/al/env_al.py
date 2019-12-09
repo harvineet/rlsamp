@@ -32,6 +32,7 @@ class ContextualBanditFunctionalContext(Environment):
     self.contextfn = contextfn
     self.true_theta = np.array(true_theta)
     self.true_model = true_model
+    self.sample_cost = sample_cost
 
     self.step = 1 # time step for y(t), x(t)
     self.x_t = self.contextfn(self.step)
@@ -47,9 +48,9 @@ class ContextualBanditFunctionalContext(Environment):
     return 1 # correct y prediction
 
   def get_expected_reward(self, action):
-    _, pred = action
-    self.optimal_reward = np.sign(self.true_model(self.x_t, self.true_theta) * pred)
-    return self.optimal_reward
+    query, pred = action
+    exp_reward = -1 * self.sample_cost * int(query!=0) + int(self.true_model(self.x_t, self.true_theta) * pred > 0) # 1 - 0/1 loss
+    return exp_reward
 
   def get_stochastic_reward(self, action):
     assert len(action)==2
@@ -57,7 +58,7 @@ class ContextualBanditFunctionalContext(Environment):
     if query==0:
       reward = None # not sampled
     else:
-      reward = self.true_model(self.x_t, self.true_theta)
+      reward = self.true_model(self.x_t, self.true_theta) # true label
 
     return reward
 
