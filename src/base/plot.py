@@ -40,8 +40,12 @@ def set_data_path(file_path):
 def _name_cleaner(agent_name):
   """Renames agent_name to prettier string for plots."""
   rename_dict = {'reinf': 'Policy Gradient REINFORCE',
+                 'ac': 'Policy Gradient Actor-Critic',
                  'bbq_k4': 'BBQ k=0.4',
                  'bbq_k5': 'BBQ k=0.5',
+                 'bbq_k8': 'BBQ k=0.8',
+                 'bbq_k25': 'BBQ k=0.25',
+                 'bbq_k3': 'BBQ k=0.3',
                  'ts': 'TS',
                  'greedy': 'Greedy'}
   if agent_name in rename_dict:
@@ -142,7 +146,7 @@ def cumulative_reward_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
        + gg.ylab('cumulative reward')
        + gg.scale_colour_brewer(name='agent', type='qual', palette='Set1'))
   
-  plot_dict = {experiment_name + '_reward': p}
+  plot_dict = {experiment_name + '_cum_reward': p}
   return plot_dict
 
 def num_query_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
@@ -167,5 +171,29 @@ def num_query_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
        + gg.scale_colour_brewer(name='agent', type='qual', palette='Set1'))
   
   plot_dict = {experiment_name + '_query': p}
+  return plot_dict
+
+def avg_reward_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
+  """Simple plot of average instantaneous regret by agent, per timestep.
+
+  Args:
+    experiment_name: string = name of experiment config.
+    data_path: string = where to look for the files.
+
+  Returns:
+    https://web.stanford.edu/~bvr/pubs/TS_Tutorial.pdf
+  """
+  df = load_data(experiment_name, data_path)
+  plt_df = (df.groupby(['t', 'agent'])
+            .agg({'avg_reward': np.mean})
+            .reset_index())
+  p = (gg.ggplot(plt_df)
+       + gg.aes('t', 'avg_reward', colour='agent')
+       + gg.geom_line(size=1.25, alpha=0.75)
+       + gg.xlab('time period (t)')
+       + gg.ylab('average reward')
+       + gg.scale_colour_brewer(name='agent', type='qual', palette='Set1'))
+  
+  plot_dict = {experiment_name + '_avg_reward': p}
   return plot_dict
 

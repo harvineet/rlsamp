@@ -1,6 +1,8 @@
 """
 Adapted from code by Ian Osband
 https://github.com/iosband/ts_tutorial/
+Policy gradient methods adapted from code in PyTorch example
+https://github.com/pytorch/examples/blob/master/reinforcement_learning/reinforce.py
 
 Finite bandit agents."""
 
@@ -122,7 +124,7 @@ class PolicyGradientActorCritic(Agent):
     query = a_t.item()
 
     # if self.step%100==0:
-    #   print('pick_action', observation, probs.data, query)
+    #   print('pick_action', self.w_t[0:2])
 
     action = (query, pred)
 
@@ -206,7 +208,7 @@ class PolicyGradientREINFORCE(Agent):
     query = a_t.item()
 
     # if self.step%100==0:
-    #   print('pick_action', observation, probs.data, query)
+    #   print('pick_action', self.w_t[0:2])
 
     action = (query, pred)
 

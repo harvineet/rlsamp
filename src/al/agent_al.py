@@ -51,8 +51,10 @@ class SelectiveSampleBBQ(Agent):
     query = int(r_t > self.step**(-self.kappa))
 
     action = (query, pred)
-
     self.logger = self.w_t
+    
+    # if self.step%100==0:
+    #   print('pick_action', self.w_t)
 
     return action
 

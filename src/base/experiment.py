@@ -71,6 +71,7 @@ class BaseExperiment(object):
                         'unique_id': self.unique_id,
                         'instant_reward': expected_reward,
                         'cum_reward': self.cum_reward,
+                        'avg_reward': self.cum_reward/(t+1),
                         'num_query': self.num_query,
                         'logger': self.agent.logger}
       self.results.append(self.data_dict)

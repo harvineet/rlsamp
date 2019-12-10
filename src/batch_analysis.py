@@ -37,11 +37,12 @@ plot_dict = {}
 
 # Most plots are simple instantaneous regret
 valid_simple_plots = ['finite_simple', 'bbq', 'rl_bbq']
-simple_plots = ['rl_bbq']
+simple_plots = ['rl_reinf_ac_bbq']
 for plot_name in simple_plots:
   plot_dict.update(bp.simple_algorithm_plot(plot_name))
   plot_dict.update(bp.cumulative_reward_plot(plot_name))
   plot_dict.update(bp.num_query_plot(plot_name))
+  plot_dict.update(bp.avg_reward_plot(plot_name))
 
 # Saving all plots to file
 
