@@ -62,6 +62,12 @@ for job_id in range(N_JOBS):
   results.append(experiment.results)
 
 
+def lower_interval(x):
+     return np.mean(x) - 2*np.std(x)
+
+def upper_interval(x):
+     return np.mean(x) + 2*np.std(x)
+
 #############################################################################
 # Collating data with Pandas
 params_df = config_lib.get_params_df(config)
@@ -106,8 +112,9 @@ print(p)
 params_df = config_lib.get_params_df(config)
 df = pd.merge(pd.concat(results), params_df, on='unique_id')
 plt_df = (df.groupby(['agent', 't'])
-          .agg({'avg_reward': np.mean})
+          .agg({'avg_reward': [np.mean, lower_interval, upper_interval]})
           .reset_index())
+plt_df.columns = ['_'.join(i) for i in plt_df.columns.values]
 
 
 #############################################################################
@@ -116,8 +123,10 @@ gg.theme_set(gg.theme_bw(base_size=16, base_family='serif'))
 gg.theme_update(figure_size=(12, 8))
 
 p = (gg.ggplot(plt_df)
-     + gg.aes('t', 'avg_reward', colour='agent')
-     + gg.geom_line())
+     + gg.aes('t_', 'avg_reward_mean', colour='agent_')
+     + gg.geom_line()
+     + gg.aes(ymin = 'avg_reward_lower_interval', ymax = 'avg_reward_upper_interval', fill = 'agent_')
+     + gg.geom_ribbon(alpha=0.1))
 print(p)
 
 #############################################################################

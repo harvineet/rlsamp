@@ -39,11 +39,15 @@ def set_data_path(file_path):
 
 def _name_cleaner(agent_name):
   """Renames agent_name to prettier string for plots."""
-  rename_dict = {'reinf': 'Policy Gradient REINFORCE',
-                 'ac': 'Policy Gradient Actor-Critic',
+  rename_dict = {'reinf': 'REINFORCE',
+                 'ac': 'REINFORCE w baseline',
                  'bbq_k4': 'BBQ k=0.4',
                  'bbq_k5': 'BBQ k=0.5',
                  'bbq_k8': 'BBQ k=0.8',
+                 'bbq_k08': 'BBQ k=0.08',
+                 'bbq_k1': 'BBQ k=0.1',
+                 'bbq_k10': 'BBQ k=1.0',
+                 'bbq_k9999': 'BBQ k=0.9999',
                  'bbq_k25': 'BBQ k=0.25',
                  'bbq_k3': 'BBQ k=0.3',
                  'ts': 'TS',
@@ -95,6 +99,12 @@ def load_data(experiment_name, data_path=_DEFAULT_DATA_PATH):
     df = pd.merge(df, params_df, on='unique_id')
     _DATA_CACHE[experiment_name] = df
     return _DATA_CACHE[experiment_name]
+
+def lower_interval(x):
+     return np.mean(x) - 2*np.std(x)/np.sqrt(x.shape[0])
+
+def upper_interval(x):
+     return np.mean(x) + 2*np.std(x)/np.sqrt(x.shape[0])
 
 
 #############################################################################
@@ -185,15 +195,44 @@ def avg_reward_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
   """
   df = load_data(experiment_name, data_path)
   plt_df = (df.groupby(['t', 'agent'])
-            .agg({'avg_reward': np.mean})
+            .agg({'avg_reward': [np.mean, lower_interval, upper_interval]})
             .reset_index())
+  plt_df.columns = ['_'.join(i) for i in plt_df.columns.values]
   p = (gg.ggplot(plt_df)
-       + gg.aes('t', 'avg_reward', colour='agent')
+       + gg.aes('t_', 'avg_reward_mean', colour='agent_')
        + gg.geom_line(size=1.25, alpha=0.75)
+       + gg.geom_ribbon(gg.aes(ymin = 'avg_reward_lower_interval', ymax = 'avg_reward_upper_interval', fill = 'agent_'), alpha=0.1)
        + gg.xlab('time period (t)')
        + gg.ylab('average reward')
-       + gg.scale_colour_brewer(name='agent', type='qual', palette='Set1'))
+       + gg.scale_colour_brewer(name='agent_', type='qual', palette='Set1'))
   
   plot_dict = {experiment_name + '_avg_reward': p}
+  return plot_dict
+
+
+def cum_regret_plot(experiment_name, data_path=_DEFAULT_DATA_PATH):
+  """Simple plot of average instantaneous regret by agent, per timestep.
+
+  Args:
+    experiment_name: string = name of experiment config.
+    data_path: string = where to look for the files.
+
+  Returns:
+    https://web.stanford.edu/~bvr/pubs/TS_Tutorial.pdf
+  """
+  df = load_data(experiment_name, data_path)
+  plt_df = (df.groupby(['t', 'agent'])
+            .agg({'cum_regret': [np.mean, lower_interval, upper_interval]})
+            .reset_index())
+  plt_df.columns = ['_'.join(i) for i in plt_df.columns.values]
+  p = (gg.ggplot(plt_df)
+       + gg.aes('t_', 'cum_regret_mean', colour='agent_')
+       + gg.geom_line(size=1.25, alpha=0.75)
+       + gg.geom_ribbon(gg.aes(ymin = 'cum_regret_lower_interval', ymax = 'cum_regret_upper_interval', fill = 'agent_'), alpha=0.1)
+       + gg.xlab('time period (t)')
+       + gg.ylab('cumulative regret')
+       + gg.scale_colour_brewer(name='agent_', type='qual', palette='Set1'))
+  
+  plot_dict = {experiment_name + '_cum_regret': p}
   return plot_dict
 

@@ -36,6 +36,8 @@ class PolicyGradientActorCritic(Agent):
     self.policy = Policy(self.args.in_dim, self.args.n_act) # in and out dim of NN
     if self.args.optim == 'adam':
       self.optimizer = optim.Adam(self.policy.parameters(), lr=self.args.learn_rate)
+    elif self.args.optim == 'adagrad':
+      self.optimizer = optim.Adagrad(self.policy.parameters(), lr=self.args.learn_rate)
     else:
       self.optimizer = optim.SGD(self.policy.parameters(), lr=self.args.learn_rate, momentum=self.args.momentum)
     # Model
@@ -115,7 +117,7 @@ class PolicyGradientActorCritic(Agent):
     r_t = np.dot(x_t.T, np.dot(pinv(A_tp1), x_t)) # no effect of transpose
     # query = int(r_t > self.step**(-self.kappa))
 
-    # observation = np.append(x_t, r_t) # include variance from RLS
+    observation = np.append(x_t, r_t) # include variance from RLS
     x_t = torch.from_numpy(observation).float()
     probs, state_value = self.policy(x_t)
     m = Categorical(probs)
@@ -160,7 +162,7 @@ class PolicyGradientREINFORCE(Agent):
     for r in self.policy.rewards[::-1]:
         R = r + self.args.gamma * R
         returns.insert(0, R)
-    returns = torch.tensor(returns)
+    returns = torch.tensor(returns).float()
     if len(returns) > 1:
       returns = (returns - returns.mean()) / (returns.std() + _SMALL_NUMBER)
     for log_prob, R in zip(self.policy.saved_log_probs, returns):
@@ -169,6 +171,7 @@ class PolicyGradientREINFORCE(Agent):
     policy_loss = torch.cat(policy_loss).sum()
     policy_loss.backward()
     self.optimizer.step()
+    # print('finish_episode', self.policy.rewards, policy_loss)
     del self.policy.rewards[:]
     del self.policy.saved_log_probs[:]
 
@@ -199,7 +202,7 @@ class PolicyGradientREINFORCE(Agent):
     r_t = np.dot(x_t.T, np.dot(pinv(A_tp1), x_t)) # no effect of transpose
     # query = int(r_t > self.step**(-self.kappa))
 
-    # observation = np.append(x_t, r_t) # include variance from RLS
+    observation = np.append(x_t, r_t) # include variance from RLS
     x_t = torch.from_numpy(observation).float().unsqueeze(0)
     probs = self.policy(x_t)
     m = Categorical(probs)

@@ -10,9 +10,11 @@ import torch.nn.functional as F
 class PolicyNN(nn.Module):
     def __init__(self, in_dim, out_dim):
         super(PolicyNN, self).__init__()
-        self.affine1 = nn.Linear(in_dim, 2)
+        self.affine1 = nn.Linear(in_dim, 4)
         # self.dropout = nn.Dropout(p=0.6)
-        self.affine2 = nn.Linear(2, out_dim)
+        self.affine2 = nn.Linear(4, 2)
+        # self.dropout2 = nn.Dropout(p=0.6)
+        self.affine3 = nn.Linear(2, out_dim)
 
         self.saved_log_probs = []
         self.rewards = []
@@ -21,7 +23,10 @@ class PolicyNN(nn.Module):
         x = self.affine1(x)
         # x = self.dropout(x)
         x = F.relu(x)
-        action_scores = self.affine2(x)
+        x = self.affine2(x)
+        # x = self.dropout2(x)
+        x = F.relu(x)
+        action_scores = self.affine3(x)
         return F.softmax(action_scores, dim=1)
 
 class PolicyNNActorCritic(nn.Module):
@@ -31,7 +36,8 @@ class PolicyNNActorCritic(nn.Module):
     def __init__(self, in_dim, out_dim):
         super(PolicyNNActorCritic, self).__init__()
         self.affine1 = nn.Linear(in_dim, 2)
-        # self.dropout = nn.Dropout(p=0.6)
+        # self.dropout1 = nn.Dropout(p=0.6)
+        self.affine2 = nn.Linear(2, 2)
 
         # actor's layer
         self.action_head = nn.Linear(2, out_dim)
@@ -49,6 +55,8 @@ class PolicyNNActorCritic(nn.Module):
         """
         x = self.affine1(x)
         # x = self.dropout(x)
+        x = F.relu(x)
+        x = self.affine2(x)
         x = F.relu(x)
 
         # actor: choses action to take from state s_t 

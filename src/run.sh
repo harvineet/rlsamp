@@ -16,3 +16,9 @@ done
 # lr = 1e-3
 # in_dim = 100
 # sample_cost = 1.5
+
+# Adult
+# kappa = 0.3,0.35
+# lr = 1e-3
+# in_dim = 123
+# sample_cost = 1
